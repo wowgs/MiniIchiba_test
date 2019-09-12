@@ -1,0 +1,7 @@
+flask
+gunicorn
+gevent
+gunicorn[gevent]
+cassandra-driver
+passlib
+pyjwt

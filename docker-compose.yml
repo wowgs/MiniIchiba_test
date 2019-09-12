@@ -1,0 +1,86 @@
+version: '3'
+services:
+
+###############################
+ cassandra0:
+  image: cassandra:3.11.4
+  container_name: cassandra0
+  restart: always
+  ports:
+   - 9042:9042
+   - 9160:9160
+   - 7199:7199
+   - 8778:8778
+  volumes:
+    - ./data/cassandra:/var/lib/cassandra
+  environment:
+   - CASSANDRA_START_RPC=true
+   - CASSANDRA_SEEDS=cassandra0
+   - CASSANDRA_CLUSTER_NAME=mtech_cluster
+  ulimits:
+    memlock: -1
+    nproc: 32768
+    nofile: 100000
+
+###############################
+ cassandra1:
+  image: cassandra:3.11.4
+  container_name: cassandra1
+  restart: always
+  ports:
+   - 9142:9042
+  volumes:
+    - ./data/cassandra1:/var/lib/cassandra
+  command: bash -c 'sleep 60;  /docker-entrypoint.sh cassandra -f'
+  depends_on:
+   - cassandra0
+  environment:
+   - CASSANDRA_SEEDS=cassandra0
+   - CASSANDRA_CLUSTER_NAME=mtech_cluster
+  ulimits:
+    memlock: -1
+    nproc: 32768
+    nofile: 100000
+
+###############################
+# cassandra2:
+#  image: cassandra:3.11.4
+#  container_name: cassandra2
+#  ports:
+#    - 9242:9042
+#  volumes:
+#    - ./data/cassandra2:/var/lib/cassandra
+#  command: bash -c 'sleep 120;  /docker-entrypoint.sh cassandra -f'
+#  depends_on:
+#    - cassandra0
+#  environment:
+#    - CASSANDRA_SEEDS=cassandra0
+#    - CASSANDRA_CLUSTER_NAME=mtech_cluster
+#  ulimits:
+#    memlock: -1
+#    nproc: 32768
+#    nofile: 100000
+
+ membership:
+    container_name: membership
+    restart: always
+    build: ./mship
+    ports:
+      - 5010:5010
+    links:
+      - cassandra0
+    command: bash -c "sleep 120; python db_init.py; sleep 5; gunicorn -c gunicorn_conf.ini wsgi:app"
+    depends_on:
+      - cassandra0
+
+
+ nginx:
+    container_name: nginx
+    restart: always
+    build: ./nginx
+    ports:
+      - 80:80
+    links:
+      - membership
+    depends_on:
+      - membership

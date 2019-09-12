@@ -1,6 +1,9 @@
 from flask import Flask
 from flask import request
+from flask import jsonify
+from flask import make_response
 from cassandra.cluster import Cluster
+from cassandra import ConsistencyLevel
 from passlib.hash import pbkdf2_sha256
 import jwt
 import datetime
@@ -27,12 +30,20 @@ class MyJwt:
 
 class CassandraClient:
     def __init__(self):
-        self.cluster = Cluster()
-        self.session = self.cluster.connect('demo')
+        self.cluster = Cluster(['cassandra0'], port=9042)
+        self.session = self.cluster.connect('membership')
+
         self.pr_user_lookup = self.session.prepare("SELECT email, password, refresh_token FROM users WHERE email=?")
+        self.pr_user_lookup.consistency_level = ConsistencyLevel.ONE
+
         self.pr_new_user = self.session.prepare("INSERT INTO users (email, password) VALUES (?, ?)")
+        self.pr_new_user.consistency_level = ConsistencyLevel.ALL
+
         self.pr_new_token = self.session.prepare("UPDATE users SET refresh_token=? WHERE email=?")
+        self.pr_new_token.consistency_level = ConsistencyLevel.ALL
+
         self.pr_cur_token = self.session.prepare("SELECT refresh_token FROM users WHERE email=?")
+        self.pr_cur_token.consistency_level = ConsistencyLevel.ONE
 
     def execute(self, *args):
         return self.session.execute(*args)
@@ -54,9 +65,9 @@ def login():
         app.cassandra.execute(app.cassandra.pr_new_token, [tokens.refresh_token, email])
 
         resp_data = {'access_token' : tokens.access_token, 'refresh_token' : tokens.refresh_token}
-        return resp_data, 200
+        return make_response(jsonify(resp_data), 200)
     else:
-        return "Wrong email or password", 403
+        return make_response(jsonify("Wrong email or password"), 403)
 
 
 @app.route('/auth/new', methods=['POST'])
@@ -68,10 +79,10 @@ def register():
 
     user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
     if user_exists:
-        return "User already exists", 409
+        return make_response(jsonify("User already exists"), 403)
     else:
         app.cassandra.execute(app.cassandra.pr_new_user, [email, pass_hash])
-        return "Success", 200
+        return make_response(jsonify("Success"), 200)
 
 
 @app.route('/refreshToken', methods=['POST'])
@@ -81,23 +92,23 @@ def new_tokens():
     try:
         email = jwt.decode(refresh_token, SECRET_KEY, algorithms='HS256', verify_exp=True)['email']
     except:
-        return 'Invalid or expired refresh token', 403
+        return make_response(jsonify('Invalid or expired refresh token'), 403)
 
     old_refresh_token = app.cassandra.execute(app.cassandra.pr_cur_token, [email])
     if old_refresh_token != refresh_token:
-        return 'Invalid or expired refresh token', 403
+        return make_response(jsonify('Invalid or expired refresh token'), 403)
 
     tokens = MyJwt(email)
     app.cassandra.execute(app.cassandra.pr_new_token, [tokens.refresh_token, email])
 
     resp_data = {'access_token': tokens.access_token, 'refresh_token': tokens.refresh_token}
-    return resp_data, 200
+    return make_response(jsonify(resp_data), 200)
 
 
 @app.route('/kek', methods=['GET'])
 def kek():
-    time.sleep(2)
-    return 'kek', 200
+    res = app.cassandra.execute("SELECT * FROM users LIMIT 10")
+    return make_response(jsonify(list(res)), 200)
 
 
 if __name__ == '__main__':
