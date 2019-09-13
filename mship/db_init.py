@@ -6,8 +6,6 @@ def main():
     cluster = Cluster(['cassandra0'], port=9042, control_connection_timeout=10)
     session = cluster.connect()
 
-    session.execute("DROP KEYSPACE IF EXISTS %s" % KEYSPACE)
-
     session.execute("""
         CREATE KEYSPACE IF NOT EXISTS %s
         WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '2' }
