@@ -115,7 +115,7 @@ def new_tokens():
     except:
         return make_response(jsonify('Invalid or expired refresh token'), 403)
 
-    old_refresh_token = app.cassandra.execute(app.cassandra.pr_cur_token, [email]).refresh_token
+    old_refresh_token = app.cassandra.execute(app.cassandra.pr_cur_token, [email])[0].refresh_token
     if old_refresh_token != refresh_token:
         return make_response(jsonify('Invalid or expired refresh token'), 403)
 
