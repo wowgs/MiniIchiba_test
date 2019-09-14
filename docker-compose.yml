@@ -69,6 +69,8 @@ services:
       - 5010:5010
     links:
       - cassandra0
+    volumes:
+      - ./logs/gunicorn:/logs
     command: bash -c "sleep 120; python db_init.py; sleep 5; gunicorn -c gunicorn_conf.ini wsgi:app"
     depends_on:
       - cassandra0
