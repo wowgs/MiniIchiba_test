@@ -51,6 +51,7 @@ app = Flask(__name__)
 app.cassandra = CassandraClient()
 
 
+@app.after_request
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     if request.method == 'OPTIONS':
@@ -59,8 +60,6 @@ def add_cors_headers(response):
         if headers:
             response.headers['Access-Control-Allow-Headers'] = headers
     return response
-
-app.after_request(add_cors_headers)
 
 
 @app.route('/auth/login', methods=['POST'])
