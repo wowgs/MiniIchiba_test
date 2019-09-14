@@ -13,9 +13,11 @@ def main():
 
     session.set_keyspace(KEYSPACE)
 
+    session.execute("DROP TABLE IF EXISTS users")
+
     session.execute("""
         CREATE TABLE IF NOT EXISTS users (
-        userId uuid,
+        userid uuid,
         name text,
         email text,
         password text,

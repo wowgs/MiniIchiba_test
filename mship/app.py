@@ -36,10 +36,10 @@ class CassandraClient:
         self.cluster = Cluster(['cassandra0'], port=9042)
         self.session = self.cluster.connect('membership')
 
-        self.pr_user_lookup = self.session.prepare("SELECT userId, name, email, password, refresh_token FROM users WHERE email=?")
+        self.pr_user_lookup = self.session.prepare("SELECT userid, name, email, password, refresh_token FROM users WHERE email=?")
         self.pr_user_lookup.consistency_level = ConsistencyLevel.ONE
 
-        self.pr_new_user = self.session.prepare("INSERT INTO users (userId, name, email, password) VALUES (?, ?, ?, ?)")
+        self.pr_new_user = self.session.prepare("INSERT INTO users (userid, name, email, password) VALUES (?, ?, ?, ?)")
         self.pr_new_user.consistency_level = ConsistencyLevel.ALL
 
         self.pr_new_token = self.session.prepare("UPDATE users SET refresh_token=? WHERE email=?")
@@ -74,9 +74,10 @@ def login():
     password = req_data['password']
 
     user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
-    if user_exists and pbkdf2_sha256.verify(password, user_exists[0][3]):
-        userid = user_exists[0][0]
-        tokens = MyJwt(userid, email, user_exists[0][1])
+    if user_exists and pbkdf2_sha256.verify(password, user_exists[0].password):
+        userid = user_exists[0].userid
+        name = user_exists[0].name
+        tokens = MyJwt(userid, email, name)
         app.cassandra.execute(app.cassandra.pr_new_token, [tokens.refresh_token, email])
 
         resp_data = {'access_token': tokens.access_token, 'refresh_token': tokens.refresh_token}
@@ -114,7 +115,7 @@ def new_tokens():
     except:
         return make_response(jsonify('Invalid or expired refresh token'), 403)
 
-    old_refresh_token = app.cassandra.execute(app.cassandra.pr_cur_token, [email])
+    old_refresh_token = app.cassandra.execute(app.cassandra.pr_cur_token, [email]).refresh_token
     if old_refresh_token != refresh_token:
         return make_response(jsonify('Invalid or expired refresh token'), 403)
 
@@ -127,7 +128,10 @@ def new_tokens():
 
 @app.route('/kek', methods=['GET'])
 def kek():
-    res = app.cassandra.execute("SELECT * FROM users LIMIT 10")
+    res = app.cassandra.execute("SELECT * FROM users LIMIT 1")
+    lol = res[0].refresh_token
+    res = app.cassandra.execute("SELECT email FROM users LIMIT 1")
+    lol = res[0].email
     return make_response(jsonify(list(res)), 200)
 
 
