@@ -35,7 +35,7 @@ class CassandraClient:
         self.pr_user_lookup = self.session.prepare("SELECT userId, name, email, password, refresh_token FROM users WHERE email=?")
         self.pr_user_lookup.consistency_level = ConsistencyLevel.ONE
 
-        self.pr_new_user = self.session.prepare("INSERT INTO users (userId, name, email, password) VALUES (?, ?, ?)")
+        self.pr_new_user = self.session.prepare("INSERT INTO users (userId, name, email, password) VALUES (?, ?, ?, ?)")
         self.pr_new_user.consistency_level = ConsistencyLevel.ALL
 
         self.pr_new_token = self.session.prepare("UPDATE users SET refresh_token=? WHERE email=?")
