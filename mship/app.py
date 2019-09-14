@@ -8,7 +8,8 @@ from passlib.hash import pbkdf2_sha256
 import jwt
 import datetime
 import uuid
-from gevent import monkey; monkey.patch_all()
+from gevent import monkey
+monkey.patch_all()
 
 SECRET_KEY = "qwertyuiopasdfghjklzxcvbnm123456"
 EXP_ACCESS_DELTA = datetime.timedelta(minutes=30)
