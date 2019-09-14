@@ -17,13 +17,17 @@ EXP_REFRESH_DELTA = datetime.timedelta(days=60)
 
 
 class MyJwt:
-    def __init__(self, id, name):
+    def __init__(self, userid, email, name):
+        my_userid = str(userid)
+
         access_exp = datetime.datetime.now() + EXP_ACCESS_DELTA
-        access_payload = {'userId': id, 'exp': access_exp, 'jti': uuid.uuid4(), 'name': name}
+        access_jti = str(uuid.uuid4())
+        access_payload = {'userId': my_userid, 'exp': access_exp, 'jti': access_jti, 'name': name, 'email': email}
         self.access_token = jwt.encode(payload=access_payload, key=SECRET_KEY, algorithm='HS256').decode('utf-8')
 
         refresh_exp = datetime.datetime.now() + EXP_REFRESH_DELTA
-        refresh_payload = {'userId': id, 'exp': refresh_exp, 'jti': uuid.uuid4(), 'name': name}
+        refresh_jti = str(uuid.uuid4())
+        refresh_payload = {'userId': my_userid, 'exp': refresh_exp, 'jti': refresh_jti, 'name': name, 'email': email}
         self.refresh_token = jwt.encode(payload=refresh_payload, key=SECRET_KEY, algorithm='HS256').decode('utf-8')
 
 
@@ -71,10 +75,11 @@ def login():
 
     user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
     if user_exists and pbkdf2_sha256.verify(password, user_exists[0][3]):
-        tokens = MyJwt(email, user_exists[0][1])
+        userid = user_exists[0][0]
+        tokens = MyJwt(userid, email, user_exists[0][1])
         app.cassandra.execute(app.cassandra.pr_new_token, [tokens.refresh_token, email])
 
-        resp_data = {'access_token' : tokens.access_token, 'refresh_token' : tokens.refresh_token}
+        resp_data = {'access_token': tokens.access_token, 'refresh_token': tokens.refresh_token}
         return make_response(jsonify(resp_data), 200)
     else:
         return make_response(jsonify("Wrong email or password"), 403)
@@ -92,7 +97,8 @@ def register():
     if user_exists:
         return make_response(jsonify("User already exists"), 403)
     else:
-        app.cassandra.execute(app.cassandra.pr_new_user, [uuid.uuid4(), name, email, pass_hash])
+        userid = uuid.uuid4()
+        app.cassandra.execute(app.cassandra.pr_new_user, [userid, name, email, pass_hash])
         return make_response(jsonify("Success"), 200)
 
 
@@ -104,6 +110,7 @@ def new_tokens():
         tmp_token = jwt.decode(refresh_token, SECRET_KEY, algorithms='HS256', verify_exp=True)
         email = tmp_token['email']
         name = tmp_token['name']
+        userid = tmp_token['userId']
     except:
         return make_response(jsonify('Invalid or expired refresh token'), 403)
 
@@ -111,7 +118,7 @@ def new_tokens():
     if old_refresh_token != refresh_token:
         return make_response(jsonify('Invalid or expired refresh token'), 403)
 
-    tokens = MyJwt(email, name)
+    tokens = MyJwt(userid, email, name)
     app.cassandra.execute(app.cassandra.pr_new_token, [tokens.refresh_token, email])
 
     resp_data = {'access_token': tokens.access_token, 'refresh_token': tokens.refresh_token}
