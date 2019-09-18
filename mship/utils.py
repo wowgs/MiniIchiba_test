@@ -36,7 +36,7 @@ class MyJwt:
 
 class MyJwtReset:
     def __init__(self, email):
-        iat = datetime.datetime.now()
+        iat = datetime.datetime.utcnow()
         exp = iat + EXP_RESET_DELTA
         reset_payload = {'email': email, 'exp': exp, 'iat': iat}
         self.reset_token = jwt.encode(payload=reset_payload, key=SECRET_KEY, algorithm='HS256').decode('utf-8')

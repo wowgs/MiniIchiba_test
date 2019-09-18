@@ -107,7 +107,7 @@ def pass_reset_post():
         email = tmp_token['email']
         iat = tmp_token['iat']
         user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
-        if user_exists[0].last_modified > iat:
+        if user_exists[0].last_modified > datetime.datetime.utcfromtimestamp(iat):
             raise Exception
     except:
         return make_response(jsonify("Bad token"), 403)
