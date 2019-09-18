@@ -84,7 +84,7 @@ def new_tokens():
     return make_response(jsonify(resp_data), 200)
 
 
-@app.route('/passwordreset1', methods=['GET'])
+@app.route('/passwordreset', methods=['GET'])
 def pass_reset_get():
     email = request.args.get('email')
     user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
@@ -96,7 +96,7 @@ def pass_reset_get():
         return make_response(jsonify("No such user"), 403)
 
 
-@app.route('/passwordreset2', methods=['POST'])
+@app.route('/passwordreset', methods=['POST'])
 def pass_reset_post():
     req_data = request.get_json(force=True)
     reset_token = req_data['reset_token']
