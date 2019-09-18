@@ -1,6 +1,6 @@
-from utils import (MyJwt, MyJwtReset, CassandraClient, MailConnect, md5, md5_verify, SECRET_KEY)
+from utils import (MyJwt, MyJwtReset, CassandraClient, send_mail, md5, md5_verify, SECRET_KEY)
 from flask import (Flask, request, make_response, jsonify)
-from passlib.hash import pbkdf2_sha256
+import threading
 import jwt
 import uuid
 from gevent import monkey
@@ -10,7 +10,6 @@ monkey.patch_all()
 
 app = Flask(__name__)
 app.cassandra = CassandraClient()
-app.email = MailConnect()
 
 
 @app.after_request
@@ -91,7 +90,7 @@ def pass_reset_get():
     user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
     if user_exists:
         reset_token = MyJwtReset(email=email).reset_token
-        app.email.send_token(email, reset_token)
+        threading.Thread(target=send_mail, args=(email, reset_token, )).start()
         return make_response(jsonify("Success"), 200)
     else:
         return make_response(jsonify("No such user"), 403)

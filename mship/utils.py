@@ -65,22 +65,31 @@ class CassandraClient:
         return self.session.execute(*args)
 
 
-class MailConnect:
-    def __init__(self):
-        self.context = ssl.create_default_context()
-        self.server = smtplib.SMTP_SSL(SMTP_ADDR, SMTP_PORT, context=self.context)
-        self.server.login(EMAIL_FROM, EMAIL_PASS)
+# class MailConnect:
+#     def __init__(self):
+#         self.context = ssl.create_default_context()
+#         self.server = smtplib.SMTP_SSL(SMTP_ADDR, SMTP_PORT, context=self.context)
+#         self.server.login(EMAIL_FROM, EMAIL_PASS)
+#
+#     def login(self):
+#         self.server.login(EMAIL_FROM, EMAIL_PASS)
+#
+#     def send_token(self, to, token):
+#         message = 'http://52.243.bla.bla/resetPassword?token=' + token
+#         try:
+#             self.server.sendmail(EMAIL_FROM, to, message)
+#         except:
+#             self.login()
+#             self.server.sendmail(EMAIL_FROM, to, message)
 
-    def login(self):
-        self.server.login(EMAIL_FROM, EMAIL_PASS)
 
-    def send_token(self, to, token):
-        message = 'http://52.243.bla.bla/resetPassword?token=%s' % token
-        try:
-            self.server.sendmail(EMAIL_FROM, to, message)
-        except:
-            self.login()
-            self.server.sendmail(EMAIL_FROM, to, message)
+def send_mail(e_to, token, e_from="wowgss@gmail.com", smtp="smtp.gmail.com", port=587, password="membership"):
+    message = "http://52.243.1.1/resetpassword?token=" + token
+    server = smtplib.SMTP(smtp, port)
+    server.starttls()
+    server.login(e_from, password)
+    server.sendmail(e_from, e_to, message)
+    server.quit()
 
 
 def md5_verify(password, my_hash):
