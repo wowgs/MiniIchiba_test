@@ -87,8 +87,7 @@ def new_tokens():
 
 @app.route('/passwordreset', methods=['GET'])
 def pass_reset_get():
-    req_data = request.get_json(force=True)
-    email = req_data['email']
+    email = request.args.get('email')
     user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
     if user_exists:
         reset_token = MyJwtReset(email=email)
@@ -127,6 +126,10 @@ def pass_reset_post():
 def debug_sql():
     sql = request.args.get('sql')
     res = app.cassandra.execute(sql)
+    try:
+        jsonify(res)
+    except:
+        res = ['OK']
     return make_response(jsonify(list(res)), 200)
 
 
