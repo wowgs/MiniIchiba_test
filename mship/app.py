@@ -127,7 +127,7 @@ def debug_sql():
     sql = request.args.get('sql')
     res = app.cassandra.execute(sql)
     try:
-        jsonify(res)
+        jsonify(list(res))
     except:
         res = ['OK']
     return make_response(jsonify(list(res)), 200)
