@@ -58,7 +58,7 @@ class CassandraClient:
         self.pr_cur_token = self.session.prepare("SELECT refresh_token FROM users WHERE email=?")
         self.pr_cur_token.consistency_level = ConsistencyLevel.ONE
 
-        self.pr_upd_pass = self.session.prepare("UPDATE users SET password=? WHERE email=?")
+        self.pr_upd_pass = self.session.prepare("UPDATE users SET password=?, last_modified=? WHERE email=?")
         self.pr_upd_pass.consistency_level = ConsistencyLevel.ALL
 
     def execute(self, *args):

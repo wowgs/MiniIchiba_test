@@ -116,7 +116,8 @@ def pass_reset_post():
 
     # pass_hash = pbkdf2_sha256.hash(new_password)
     pass_hash = md5(new_password)
-    app.cassandra.execute(app.cassandra.pr_upd_pass, [pass_hash, email])
+    new_modified_time = datetime.datetime.utcnow()
+    app.cassandra.execute(app.cassandra.pr_upd_pass, [pass_hash, new_modified_time, email])
 
     return make_response(jsonify("Success"), 200)
 
