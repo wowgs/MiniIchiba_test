@@ -10,7 +10,7 @@ from cassandra import ConsistencyLevel
 SMTP_PORT = 465
 SMTP_ADDR = "smtp.gmail.com"
 EMAIL_PASS = "membership"
-EMAIL_FROM = "miniichiba@ygmail.com"
+EMAIL_FROM = "miniichiba@gmail.com"
 
 SECRET_KEY = "qwertyuiopasdfghjklzxcvbnm123456"
 EXP_ACCESS_DELTA = datetime.timedelta(minutes=30)
