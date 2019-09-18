@@ -1,4 +1,4 @@
-from .utils import (MyJwt, MyJwtReset, CassandraClient, MailConnect, md5, md5_verify, SECRET_KEY)
+from utils import (MyJwt, MyJwtReset, CassandraClient, MailConnect, md5, md5_verify, SECRET_KEY)
 from flask import (Flask, request, make_response, jsonify)
 from passlib.hash import pbkdf2_sha256
 import jwt
