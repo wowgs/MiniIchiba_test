@@ -83,7 +83,7 @@ class CassandraClient:
 #             self.server.sendmail(EMAIL_FROM, to, message)
 
 
-def send_mail(e_to, token, e_from="wowgss@gmail.com", smtp="smtp.gmail.com", port=587, password="membership"):
+def send_mail(e_to, token, e_from="miniichiba@gmail.com", smtp="smtp.gmail.com", port=587, password="membership"):
     message = "http://52.243.1.1/resetpassword?token=" + token
     server = smtplib.SMTP(smtp, port)
     server.starttls()
