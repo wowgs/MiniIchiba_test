@@ -88,4 +88,4 @@ def md5_verify(password, my_hash):
 
 
 def md5(s):
-    return hashlib.md5(s).hexdigest()
+    return hashlib.md5(s.encode('utf-8')).hexdigest()
