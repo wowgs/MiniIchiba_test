@@ -85,19 +85,19 @@ def new_tokens():
     return make_response(jsonify(resp_data), 200)
 
 
-@app.route('/passwordreset', methods=['GET'])
+@app.route('/passwordreset1', methods=['GET'])
 def pass_reset_get():
     email = request.args.get('email')
     user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
     if user_exists:
-        reset_token = MyJwtReset(email=email)
+        reset_token = MyJwtReset(email=email).reset_token
         app.email.send_token(email, reset_token)
         return make_response(jsonify("Success"), 200)
     else:
         return make_response(jsonify("No such user"), 403)
 
 
-@app.route('/passwordreset', methods=['POST'])
+@app.route('/passwordreset2', methods=['POST'])
 def pass_reset_post():
     req_data = request.get_json(force=True)
     reset_token = req_data['reset_token']
