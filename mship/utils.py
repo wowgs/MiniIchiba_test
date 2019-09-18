@@ -85,15 +85,20 @@ class CassandraClient:
 
 
 def send_mail(e_to, token, e_from="miniichiba@gmail.com", smtp="smtp.gmail.com", port=587, password="membership"):
-    message = "Somebody wants to reset password of your account \n http://52.243.1.1/resetpassword?token=%s" % token
-    subject = 'Resetting password at Miniichiba'
+    link = 'http://52.243.1.1/resetpassword?token=%s' % token
 
-    msg = MIMEMultipart()
+    subject = 'Resetting password at Miniichiba'
+    message_html = ('<p>Somebody wants to reset password of your account '
+                    '<a href="%s">http://52.243.1.1/resetpassword<a><p>' % link)
+    message_plain = "Somebody wants to reset password of your account http://52.243.1.1/resetpassword"
+
+    msg = MIMEMultipart('alternative')
     msg['From'] = e_from
     msg['To'] = e_to
     msg['Subject'] = subject
 
-    msg.attach(MIMEText(message, 'plain'))
+    msg.attach(MIMEText(message_plain, 'plain'))
+    msg.attach(MIMEText(message_html, 'html'))
 
     server = smtplib.SMTP(smtp, port)
     server.starttls()
