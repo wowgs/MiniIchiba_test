@@ -1,11 +1,12 @@
 import smtplib
-import ssl
 import jwt
 import datetime
 import hashlib
 import uuid
 from cassandra.cluster import Cluster
 from cassandra import ConsistencyLevel
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 SMTP_PORT = 465
 SMTP_ADDR = "smtp.gmail.com"
@@ -84,11 +85,21 @@ class CassandraClient:
 
 
 def send_mail(e_to, token, e_from="miniichiba@gmail.com", smtp="smtp.gmail.com", port=587, password="membership"):
-    message = "http://52.243.1.1/resetpassword?token=" + token
+    message = "Somebody wants to reset password of your account \n http://52.243.1.1/resetpassword?token=%s" % token
+    subject = 'Resetting password at Miniichiba'
+
+    msg = MIMEMultipart()
+    msg['From'] = e_from
+    msg['To'] = e_to
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(message, 'plain'))
+
     server = smtplib.SMTP(smtp, port)
     server.starttls()
     server.login(e_from, password)
-    server.sendmail(e_from, e_to, message)
+    text = msg.as_string()
+    server.sendmail(e_from, e_to, text)
     server.quit()
 
 
