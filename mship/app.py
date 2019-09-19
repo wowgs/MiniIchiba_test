@@ -107,6 +107,8 @@ def pass_reset_post():
         email = tmp_token['email']
         iat = tmp_token['iat']
         user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
+        debug_payload = {'last': user_exists[0].last_modified, 'iat': datetime.datetime.utcfromtimestamp(iat)}
+        return make_response(jsonify(debug_payload), 200)
         if user_exists[0].last_modified > datetime.datetime.utcfromtimestamp(iat):
             raise Exception
     except:
