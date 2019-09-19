@@ -47,7 +47,7 @@ class CassandraClient:
         self.cluster = Cluster(['cassandra0'], port=9042)
         self.session = self.cluster.connect('membership')
 
-        self.pr_user_lookup = self.session.prepare("SELECT userid, name, email, password, refresh_token FROM users WHERE email=?")
+        self.pr_user_lookup = self.session.prepare("SELECT userid, name, email, password, refresh_token, last_modified FROM users WHERE email=?")
         self.pr_user_lookup.consistency_level = ConsistencyLevel.ONE
 
         self.pr_new_user = self.session.prepare("INSERT INTO users (userid, name, email, password, last_modified) VALUES (?, ?, ?, ?, ?)")
