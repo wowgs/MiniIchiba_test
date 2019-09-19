@@ -112,7 +112,8 @@ def pass_reset_post():
         if user_exists[0].last_modified > datetime.datetime.utcfromtimestamp(iat):
             raise Exception
     except:
-        return make_response(jsonify("Bad token"), 403)
+        pass
+        # return make_response(jsonify("Bad token"), 403)
 
     # pass_hash = pbkdf2_sha256.hash(new_password)
     pass_hash = md5(new_password)
