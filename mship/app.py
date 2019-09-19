@@ -102,17 +102,19 @@ def pass_reset_post():
     reset_token = req_data['reset_token']
     new_password = req_data['password']
 
-    try:
-        tmp_token = jwt.decode(reset_token, SECRET_KEY, algorithms='HS256', verfify_exp=True)
-        email = tmp_token['email']
-        iat = tmp_token['iat']
-        user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
-        debug_payload = {'last': user_exists[0].last_modified, 'iat': datetime.datetime.utcfromtimestamp(iat)}
-        return make_response(jsonify(debug_payload), 200)
-        if user_exists[0].last_modified > datetime.datetime.utcfromtimestamp(iat):
-            raise Exception
-    except:
-        pass
+    #try:
+    tmp_token = jwt.decode(reset_token, SECRET_KEY, algorithms='HS256', verfify_exp=True)
+    email = tmp_token['email']
+    iat = tmp_token['iat']
+    user_exists = app.cassandra.execute(app.cassandra.pr_user_lookup, [email])
+
+    debug_payload = {'last': user_exists[0].last_modified, 'iat': datetime.datetime.utcfromtimestamp(iat)}
+    return make_response(jsonify(debug_payload), 200)
+
+    if user_exists[0].last_modified > datetime.datetime.utcfromtimestamp(iat):
+        raise Exception
+    #except:
+        #pass
         # return make_response(jsonify("Bad token"), 403)
 
     # pass_hash = pbkdf2_sha256.hash(new_password)
