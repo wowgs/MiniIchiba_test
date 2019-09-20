@@ -99,6 +99,7 @@ def pass_reset_get():
 @app.route('/auth/passwordreset', methods=['POST'])
 def pass_reset_post():
     req_data = request.get_json(force=True)
+    return make_response(jsonify(req_data), 200)
     reset_token = req_data['resetToken']
     new_password = req_data['password']
 
