@@ -85,7 +85,7 @@ class CassandraClient:
 
 
 def send_mail(e_to, token, e_from="miniichiba@gmail.com", smtp="smtp.gmail.com", port=587, password="membership"):
-    link_short = 'http://20.188.2.44/passwordrecovery'
+    link_short = 'http://20.188.2.44/newpassword'
     link_full = link_short + ('?token=%s' % token)
 
     subject = 'Resetting password at Miniichiba'
